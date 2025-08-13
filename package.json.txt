@@ -1,0 +1,20 @@
+{
+  "name": "pdf-signing-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "install-all": "npm install",
+    "start:frontend": "npm --workspace frontend start",
+    "start:backend": "npm --workspace backend start",
+    "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "lint": "npm run lint --workspaces",
+    "build": "npm run build --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
