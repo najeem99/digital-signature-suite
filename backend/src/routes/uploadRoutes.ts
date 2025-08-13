@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import * as uploadService from "../services/uploadService";
+import { protect } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 const upload = multer(); // memory storage
@@ -30,7 +31,7 @@ const upload = multer(); // memory storage
  *       500:
  *         description: Internal server error
  */
-router.post("/", upload.single("file"), async (req, res) => {
+router.post("/",protect, upload.single("file"), async (req, res) => {
   console.log("File upload request received");
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
@@ -62,7 +63,7 @@ router.post("/", upload.single("file"), async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-router.get("/:public_id", async (req, res) => {
+router.get("/:public_id",protect, async (req, res) => {
   try {
     const { public_id } = req.params;
     const url = await uploadService.getPDFUrl(public_id);
