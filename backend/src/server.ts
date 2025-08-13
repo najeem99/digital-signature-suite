@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/authRoutes"; // you'll create this
-import { swaggerUi, swaggerSpec } from "./utils/swagger";
-import swaggerDocs from "./utils/swagger";
+import uploadRoutes from "./routes/uploadRoutes"; // you'll create this
+ import swaggerDocs from "./utils/swagger";
 dotenv.config();
 
 const app = express();
@@ -21,6 +21,7 @@ swaggerDocs(app, process.env.PORT || 5000);
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/v1/upload", uploadRoutes);
 
 // Health check route
 app.get("/", (req, res) => {
