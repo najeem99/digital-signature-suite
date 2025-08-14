@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { motion } from "framer-motion";
+import PdfSigner from "../components/shared/PdfSigner";
 export interface MenuItem {
   label: string;
   action: "navigate" | "logout";
@@ -53,7 +54,7 @@ const menuItems: MenuItem[] = [
     delay: 0.3,
   },
 ];
- // Home
+// Home
 const Home: React.FC = () => {
   const { logout, user } = useAuthStore();
   const navigate = useNavigate();
@@ -87,6 +88,12 @@ const Home: React.FC = () => {
       >
         Welcome {user?.name || "User"}!
       </motion.h1>
+      <PdfSigner
+        fileUrl="https://res.cloudinary.com/dqqtuvlcv/raw/upload/v1755177994/ljpryeszwehwatuoxuly"
+        fileName="signed-sample.pdf"
+        onUploadSuccess={() => console.log("Uploaded successfully")}
+      />
+
 
       {menuItems.map((item, idx) => (
         <motion.button
