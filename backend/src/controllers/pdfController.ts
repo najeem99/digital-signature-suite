@@ -7,6 +7,9 @@ export const requestDocumentSign = async (req: Request, res: Response) => {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     console.log(req.user)
+    if (req?.user?.role !== 'uploader') {
+      return res.status(403).json({ message: "Forbidden: Only uploaders can request document signing." });
+    }
     const { assignedToId, signMarking } = req.body;
 
     // Upload file to Cloudinary
@@ -77,6 +80,9 @@ export const addSignedDocument = async (req: Request, res: Response) => {
     const id = Number(req?.params?.id);
     if (!id) return res.status(400).json({ message: "id is required to find existing data" });
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    if (req?.user?.role !== 'signer') {
+      return res.status(403).json({ message: "Forbidden: Only Signers are allowed to sign document." });
+    }
 
     const pdf = await pdfService.getPdfById(id);
     if (!pdf) return res.status(404).json({ message: "PDF not found" });

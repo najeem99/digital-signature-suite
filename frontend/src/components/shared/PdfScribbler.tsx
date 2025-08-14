@@ -6,6 +6,7 @@ import axiosInstance from "../../api/axiosInstance";
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { saveAs } from "file-saver";
 import { LABEL_AND_COLORS } from "../../constants/labelColors"; // Assuming you have a constants file for label colors
+import { useAuthStore } from "../../store/authStore";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -34,6 +35,7 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [pdfDimensions, setPdfDimensions] = useState({ width: 600, height: 800 });
+  const { user } = useAuthStore.getState(); // ✅ get state without hook
 
   useEffect(() => {
     console.log("signMarking changed:", signMarking);
@@ -133,28 +135,28 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
           }
         }
 
-        // Add automatic labels like date
+        // Add automatic labels like date, name, email, etc.
         signMarking?.[Number(pageStr)]?.forEach((mark) => {
-          let text = mark.label;
+          let text: string;
 
-          // If it's a "date" label, insert today's date
-          if (mark.label?.toLowerCase() === "date") {
-            text = new Date().toLocaleDateString("en-GB"); // DD/MM/YYYY
-            // normalized 0-1 coordinates
+          switch (mark.label?.toLowerCase()) {
+            case "date":
+              text = new Date().toLocaleDateString("en-GB"); // DD/MM/YYYY
+              break;
+            case "name":
+              text = user?.name || mark.label;
+              break;
+            case "email":
+              text = user?.email || mark.label;
+              break;
+            default:
+              text = "";
+          }
+
+          // Only draw if text is not empty
+          if (text) {
             const xPos = mark.x * width;   // width = PDF page width in points
             const yPos = (0.99 - mark.y) * height; // flip Y axis
-
-            // Log in a structured way for ChatGPT
-            console.log(JSON.stringify({
-              label: mark.label,
-              originalX: mark.x,
-              originalY: mark.y,
-              pdfWidth: pdfDimensions.width,
-              pdfHeight: pdfDimensions.height,
-              calculatedX: xPos,
-              calculatedY: yPos
-            }, null, 2));
-
             page.drawText(text, {
               x: xPos,
               y: yPos,
@@ -162,8 +164,6 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
               color: rgb(0, 0, 0), // black text
             });
           }
-
-
         });
       }
 
@@ -232,10 +232,22 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
         const color = LABEL_AND_COLORS[mark.label?.toLowerCase()] || "#9E9E9E";
 
         // Automatically fill "date" label with today's date
-        const displayText =
-          mark.label?.toLowerCase() === "date"
-            ? new Date().toLocaleDateString("en-GB") // DD/MM/YYYY format
-            : mark.label;
+        let displayText: string;
+
+        switch (mark.label?.toLowerCase()) {
+          case "date":
+            displayText = new Date().toLocaleDateString("en-GB"); // DD/MM/YYYY
+            break;
+          case "email":
+            displayText = user?.email || mark.label;
+            break;
+          case "name":
+            displayText = user?.name || mark.label;
+            break;
+          // add more cases if needed, e.g., "name", "signature", etc.
+          default:
+            displayText = mark.label || "";
+        }
 
         return (
           <div
