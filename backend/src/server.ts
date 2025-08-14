@@ -23,7 +23,7 @@ swaggerDocs(app, process.env.PORT || 5000);
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/upload", uploadRoutes);
-app.use("/api/v1/request-sign", pdfRoutes);
+ app.use("/api/v1/docs", pdfRoutes);
 
 // Health check route
 app.get("/", (req, res) => {

@@ -38,6 +38,20 @@ const menuItems: MenuItem[] = [
     color: "blue",
     delay: 0.3,
   },
+  {
+    label: "UploaderDashboard",
+    action: "navigate",
+    path: "/dashboard-uploader",
+    color: "blue",
+    delay: 0.3,
+  },
+  {
+    label: "SignerDashboard",
+    action: "navigate",
+    path: "/dashboard-signer",
+    color: "blue",
+    delay: 0.3,
+  },
 ];
  // Home
 const Home: React.FC = () => {

@@ -128,7 +128,7 @@ const PdfSignatureMarker: React.FC = () => {
       formData.append("assignedToId", assignedUserId); // assignedToId from your curl
       formData.append("signMarking", JSON.stringify(boxesPerPage)); // your boxes JSON
 
-      const response = await axiosInstance.post("/v1/request-sign", formData, {
+      const response = await axiosInstance.post("/v1/docs/request-sign", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

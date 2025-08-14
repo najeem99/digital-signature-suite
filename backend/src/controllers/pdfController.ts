@@ -20,10 +20,21 @@ export const requestDocumentSign = async (req: Request, res: Response) => {
       userId: Number(req.user.id),
       assignedToId: assignedToId ? Number(assignedToId) : undefined,
       signMarking: signMarking ? JSON.parse(signMarking) : undefined,
-      status :'WAITING_FOR_SIGNER'
+      status: 'WAITING_FOR_SIGNER'
     });
 
     res.json(savedPdf);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+export const getSignerDocuments = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    const userId = Number(req.user.id);
+    const pdfs = await pdfService.getPdfsByStatusAndUser(userId,['WAITING_FOR_SIGNER', 'REJECTED', 'ACCEPTED']);
+    res.json(pdfs);
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: err.message });

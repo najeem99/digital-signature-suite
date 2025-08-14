@@ -9,6 +9,8 @@ import Home from "./routes/Home";
 import UploadPdf from "./routes/UploadPdf";
 import PdfViewer from "./routes/PdfViewer";
 import PdfSignatureMarker from "./routes/PdfSignatureMarker";
+import UploaderDashboard from "./routes/UploaderDashboard";
+import SignerDashboard from "./routes/SignerDashboard";
 export default function AppRoutes() {
   const { user } = useAuthStore();
 
@@ -42,6 +44,14 @@ export default function AppRoutes() {
         <Route
           path="/pdf-sign-marker"
           element={user ? <PdfSignatureMarker /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/dashboard-uploader"
+          element={user ? <UploaderDashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/dashboard-signer"
+          element={user ? <SignerDashboard /> : <Navigate to="/login" />}
         />
 
         {/* Catch-all */}

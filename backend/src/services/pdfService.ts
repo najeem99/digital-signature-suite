@@ -43,3 +43,38 @@ export const savePdfDetails = async (data: {
     },
   });
 };
+
+export const getPdfsByStatusAndUser = async (
+  userId: number,
+  statuses: ('WAITING_FOR_SIGNER' | 'WAITING_FOR_APPROVAL' | 'REJECTED' | 'ACCEPTED')[]
+) => {
+  return prisma.pdfFile.findMany({
+    where: {
+      status: { in: statuses },
+      OR: [
+        { userId },
+        { assignedToId: userId },
+      ],
+    },
+    select: {
+      id: true,
+      fileName: true,
+      url: true,
+      public_id: true,
+      userId: true,
+      assignedToId: true,
+      signMarking: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: { id: true, name: true }  // only select needed fields
+      },
+      assignedTo: {
+        select: { id: true, name: true }  // only select needed fields
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
