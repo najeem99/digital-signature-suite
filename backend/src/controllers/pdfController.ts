@@ -33,7 +33,9 @@ export const getSignerDocuments = async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     const userId = Number(req.user.id);
-    const pdfs = await pdfService.getPdfsByStatusAndUser(userId, ['WAITING_FOR_SIGNER', 'REJECTED', 'ACCEPTED']);
+    console.log('role', req?.user?.role)
+    const filter = req?.user?.role === 'signer' ? ['WAITING_FOR_SIGNER'] : ['WAITING_FOR_SIGNER', 'REJECTED', 'ACCEPTED', 'WAITING_FOR_APPROVAL'];
+    const pdfs = await pdfService.getPdfsByStatusAndUser(userId, filter);
     res.json(pdfs);
   } catch (err: any) {
     console.error(err);
@@ -62,6 +64,38 @@ export const getSignerDocumentById = async (req: Request, res: Response) => {
     }
 
     res.json(pdf);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const addSignedDocument = async (req: Request, res: Response) => {
+  try {
+    console.log("Adding signed document with file:", req);
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    const id = Number(req?.params?.id);
+    if (!id) return res.status(400).json({ message: "id is required to find existing data" });
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const pdf = await pdfService.getPdfById(id);
+    if (!pdf) return res.status(404).json({ message: "PDF not found" });
+
+    // Upload file to Cloudinary
+    const cloudResult = await pdfService.uploadPDFToCloudinary(req.file, req.file.originalname);
+
+    // Update info metadata to DB
+    const savedPdf = await pdfService.updatePdfDetails(id, {
+      fileName: req.file.originalname,
+      url: cloudResult.url,
+      public_id: cloudResult.public_id,
+      assignedToId: pdf.userId,
+      status: 'WAITING_FOR_APPROVAL'
+    })
+
+
+
+    res.json(savedPdf);
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: err.message });

@@ -2,7 +2,7 @@
 import express from "express";
 import multer from "multer";
 import { protect } from "../middlewares/authMiddleware";
-import { getSignerDocuments, requestDocumentSign,getSignerDocumentById } from "../controllers/pdfController";
+import { getSignerDocuments, requestDocumentSign, getSignerDocumentById, addSignedDocument } from "../controllers/pdfController";
 
 const router = express.Router();
 const upload = multer(); // memory storage
@@ -226,6 +226,82 @@ router.get("/", protect, getSignerDocuments);
  *         description: Internal server error
  */
 
- router.get("/:id", protect, getSignerDocumentById);
+router.get("/:id", protect, getSignerDocumentById);
+
+/**
+ * @swagger
+ * /api/v1/docs/sign-documents/{id}:
+ *   post:
+ *     summary: Upload signed PDF file with metadata
+ *     tags:
+ *       - PDF
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the old record to update
+ *     security:
+ *       - bearerAuth: []   # Assuming JWT auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: PDF file to upload
+ *     responses:
+ *       200:
+ *         description: PDF uploaded and metadata saved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 fileName:
+ *                   type: string
+ *                   example: "test-file.pdf"
+ *                 url:
+ *                   type: string
+ *                   example: "https://res.cloudinary.com/dqqtuvlcv/raw/upload/v1755160766/test-file.pdf"
+ *                 public_id:
+ *                   type: string
+ *                   example: "test-file"
+ *                 userId:
+ *                   type: integer
+ *                   example: 2
+ *                 assignedToId:
+ *                   type: integer
+ *                   nullable: true
+ *                   example: 3
+ *                 signMarking:
+ *                   type: object
+ *                   example: { "x": 100, "y": 200 }
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: No file uploaded
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+
+
+router.post("/sign-documents/:id", protect, upload.single("file"), addSignedDocument);
+
+
 
 export default router;

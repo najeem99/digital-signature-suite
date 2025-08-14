@@ -5,19 +5,21 @@ import axiosInstance from "../api/axiosInstance";
 import PdfGrid from "../components/shared/PdfGrid";
 
 export interface PdfFile {
-    id: number;
-    fileName: string;
-    url: string;
-    public_id: string;
-    status: string;
-    createdAt: string;
-    user: { id: number; name: string };
-    assignedTo: { id: number; name: string } | null;
+  id: number;
+  fileName: string;
+  url: string;
+  public_id: string;
+  status: string;
+  createdAt: string;
+  user: { id: number; name: string };
+  assignedTo: { id: number; name: string } | null;
 }
 
 const UploaderDashboard: React.FC = () => {
   const [pending, setPending] = useState<PdfFile[]>([]);
-  const [signed, setSigned] = useState<PdfFile[]>([]);
+  const [waitingApproval, setWaitingApproval] = useState<PdfFile[]>([]);
+  const [rejected, setRejected] = useState<PdfFile[]>([]);
+  const [accepted, setAccepted] = useState<PdfFile[]>([]);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -29,7 +31,9 @@ const UploaderDashboard: React.FC = () => {
       const pdfs: PdfFile[] = res.data;
 
       setPending(pdfs.filter((p) => p.status === "WAITING_FOR_SIGNER"));
-      setSigned(pdfs.filter((p) => p.status === "ACCEPTED"));
+      setWaitingApproval(pdfs.filter((p) => p.status === "WAITING_FOR_APPROVAL"));
+      setRejected(pdfs.filter((p) => p.status === "REJECTED"));
+      setAccepted(pdfs.filter((p) => p.status === "ACCEPTED"));
     } catch (err) {
       console.error("Error fetching PDFs:", err);
     } finally {
@@ -71,12 +75,34 @@ const UploaderDashboard: React.FC = () => {
 
           <Box mb={4}>
             <Typography variant="h6" gutterBottom fontWeight="bold">
-              Signed Documents
+              Waiting for Approval
             </Typography>
-            {signed.length > 0 ? (
-              <PdfGrid pdfs={signed} onSelect={handleSelectPdf} truncateLength={20} />
+            {waitingApproval.length > 0 ? (
+              <PdfGrid pdfs={waitingApproval} onSelect={handleSelectPdf} truncateLength={20} />
             ) : (
-              <Typography>No signed documents.</Typography>
+              <Typography>No documents waiting for approval.</Typography>
+            )}
+          </Box>
+
+          <Box mb={4}>
+            <Typography variant="h6" gutterBottom fontWeight="bold">
+              Rejected Documents
+            </Typography>
+            {rejected.length > 0 ? (
+              <PdfGrid pdfs={rejected} onSelect={handleSelectPdf} truncateLength={20} />
+            ) : (
+              <Typography>No rejected documents.</Typography>
+            )}
+          </Box>
+
+          <Box mb={4}>
+            <Typography variant="h6" gutterBottom fontWeight="bold">
+              Accepted Documents
+            </Typography>
+            {accepted.length > 0 ? (
+              <PdfGrid pdfs={accepted} onSelect={handleSelectPdf} truncateLength={20} />
+            ) : (
+              <Typography>No accepted documents.</Typography>
             )}
           </Box>
         </>

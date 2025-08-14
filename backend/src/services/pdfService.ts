@@ -101,3 +101,22 @@ export const getPdfById = async (id: number) => {
     },
   });
 };
+
+export const updatePdfDetails = async (id: number, data: {
+  fileName?: string;
+  url?: string;
+  public_id?: string;
+  assignedToId?: number;
+  status?: 'WAITING_FOR_SIGNER' | 'WAITING_FOR_APPROVAL' | 'REJECTED' | 'ACCEPTED';
+}) => {
+  return prisma.pdfFile.update({
+    where: { id },
+    data: {
+      ...(data.fileName && { fileName: data.fileName }),
+      ...(data.url && { url: data.url }),
+      ...(data.public_id && { public_id: data.public_id }),
+      ...(data.assignedToId !== undefined && { assignedToId: data.assignedToId }),
+      ...(data.status && { status: data.status }),
+    },
+  });
+};

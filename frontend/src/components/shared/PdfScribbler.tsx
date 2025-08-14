@@ -15,6 +15,7 @@ interface PdfSignerProps {
   onUploadSuccess?: () => void;
   signMarking?: Record<string, { x: number; y: number; id: string; label: string }[]>; // from API
   currentUserId?: string; // assigned signer ID
+  onUploadPdf: (blob: Blob) => void;
 }
 
 interface Stroke {
@@ -24,7 +25,7 @@ interface Stroke {
 
 
 
-const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuccess, signMarking }) => {
+const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuccess, signMarking, onUploadPdf }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -139,7 +140,7 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
           // If it's a "date" label, insert today's date
           if (mark.label?.toLowerCase() === "date") {
             text = new Date().toLocaleDateString("en-GB"); // DD/MM/YYYY
-             // normalized 0-1 coordinates
+            // normalized 0-1 coordinates
             const xPos = mark.x * width;   // width = PDF page width in points
             const yPos = (0.99 - mark.y) * height; // flip Y axis
 
@@ -168,19 +169,14 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
 
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      saveAs(blob, `signed-${fileName}`);
+      // Save locally for testing
+      // saveAs(blob, `signed-${fileName}`);
 
-      const formData = new FormData();
-      formData.append("file", blob, fileName);
-      await axiosInstance.post("/api/v1/request-sign", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      onUploadPdf(blob);
 
-      alert("PDF saved locally and uploaded successfully!");
-      onUploadSuccess?.();
     } catch (err) {
       console.error(err);
-      alert("Error generating/uploading PDF");
+      console.error("Error generating/uploading PDF");
     } finally {
       setLoading(false);
     }
