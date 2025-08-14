@@ -1,8 +1,7 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Express, Request, Response } from "express";
-import glob from "glob";
-import path from "path";
+ import path from "path";
 
 const options: swaggerJsdoc.Options = {
     definition: {
@@ -30,8 +29,7 @@ const options: swaggerJsdoc.Options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 function swaggerDocs(app: Express, port: number) {
-    console.log("Swagger is reading files:", glob.sync("./routes/*.ts")); // debug
-
+ 
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     app.get("/api-docs.json", (req: Request, res: Response) => {
