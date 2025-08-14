@@ -8,16 +8,41 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
   role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  uploadedFiles PdfFile[]      @relation("UploadedBy")   // files uploaded by this user
+  assignedFiles PdfFile[]      @relation("AssignedPdf") // files assigned to this user
 }
 
 enum Role {
   uploader
   signer
+}
+
+model PdfFile {
+  id            Int       @id @default(autoincrement())
+  fileName      String
+  url           String
+  public_id     String
+  userId        Int
+  user          User      @relation("UploadedBy", fields: [userId], references: [id])
+  assignedToId  Int?
+  assignedTo    User?     @relation("AssignedPdf", fields: [assignedToId], references: [id])
+  signMarking   Json
+  status        PdfStatus @default(WAITING_FOR_SIGNER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum PdfStatus {
+  WAITING_FOR_SIGNER
+  WAITING_FOR_APPROVAL
+  REJECTED
+  ACCEPTED
 }

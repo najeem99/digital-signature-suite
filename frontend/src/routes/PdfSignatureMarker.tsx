@@ -6,7 +6,8 @@ import {
 } from "@mui/material";
 import ConfirmBoxesDialog from "../components/PdfSignatureMarker/ConfirmBoxesDialog";
 import PdfViewerWithToolbar from "../components/PdfSignatureMarker/PdfViewerWithToolbar";
-
+import axiosInstance from "../api/axiosInstance";
+import SuccessDialog from "../components/PdfSignatureMarker/SuccessDialog";
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface DraggableBox {
@@ -27,6 +28,7 @@ const PdfSignatureMarker: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
+  const [successOpen, setSuccessOpen] = useState(false);
 
   const labels = ["sign here", "name", "date"];
 
@@ -116,10 +118,29 @@ const PdfSignatureMarker: React.FC = () => {
 
   const handleUpload = () => setConfirmOpen(true);
 
-  const handleConfirm = () => {
-    console.log("Confirmed boxes:", boxesPerPage);
-    setConfirmOpen(false);
-    // Here you can send boxesPerPage to backend
+  const handleConfirm = async () => {
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file); // PDF file
+      formData.append("assignedToId", "2"); // assignedToId from your curl
+      formData.append("signMarking", JSON.stringify(boxesPerPage)); // your boxes JSON
+
+      const response = await axiosInstance.post("/v1/request-sign", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      console.log("Upload successful:", response.data);
+      setConfirmOpen(false);
+      // show success dialog
+      setSuccessOpen(true);
+
+    } catch (error) {
+      console.error("Error uploading PDF and boxes:", error);
+    }
   };
 
   return (
@@ -159,6 +180,12 @@ const PdfSignatureMarker: React.FC = () => {
         boxesPerPage={boxesPerPage}
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirm}
+      />
+
+      <SuccessDialog
+        open={successOpen}
+        message="Document submitted successfully for signature!"
+        onClose={() => setSuccessOpen(false)}
       />
     </Box>
   );

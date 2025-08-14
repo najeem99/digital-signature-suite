@@ -17,6 +17,7 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload & { id: string; role: string };
     req.user = { id: decoded.id, role: decoded.role };
+    console.log('Authenticated user:', decoded);
     next();
   } catch (err: any) {
     if (err.name === 'TokenExpiredError') {
