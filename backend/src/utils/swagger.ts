@@ -1,7 +1,7 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Express, Request, Response } from "express";
- import path from "path";
+import path from "path";
 
 const options: swaggerJsdoc.Options = {
     definition: {
@@ -21,15 +21,16 @@ const options: swaggerJsdoc.Options = {
             }
         },
         security: [{ bearerAuth: [] }],
-        servers: [{ url: "http://localhost:5000" }]
+        servers: [{ url: "/" }]
+
     },
-  apis: [path.join(__dirname, "../routes/*.ts")] // <- FIXED
+    apis: [path.join(__dirname, "../routes/*.ts")] // <- FIXED
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
 function swaggerDocs(app: Express, port: number) {
- 
+
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
     app.get("/api-docs.json", (req: Request, res: Response) => {
