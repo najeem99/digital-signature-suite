@@ -88,12 +88,6 @@ const Home: React.FC = () => {
       >
         Welcome {user?.name || "User"}!
       </motion.h1>
-      <PdfSigner
-        fileUrl="https://res.cloudinary.com/dqqtuvlcv/raw/upload/v1755177994/ljpryeszwehwatuoxuly"
-        fileName="signed-sample.pdf"
-        onUploadSuccess={() => console.log("Uploaded successfully")}
-      />
-
 
       {menuItems.map((item, idx) => (
         <motion.button

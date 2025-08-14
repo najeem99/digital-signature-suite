@@ -33,8 +33,35 @@ export const getSignerDocuments = async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
     const userId = Number(req.user.id);
-    const pdfs = await pdfService.getPdfsByStatusAndUser(userId,['WAITING_FOR_SIGNER', 'REJECTED', 'ACCEPTED']);
+    const pdfs = await pdfService.getPdfsByStatusAndUser(userId, ['WAITING_FOR_SIGNER', 'REJECTED', 'ACCEPTED']);
     res.json(pdfs);
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getSignerDocumentById = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    console.log('🅰️', req?.params?.id)
+    const id = req?.params?.id;
+    if (!id) return res.status(400).json({ message: "PDF id is required" });
+
+    const pdfId = Number(id);
+    const pdf = await pdfService.getPdfById(pdfId);
+
+    if (!pdf) return res.status(404).json({ message: "PDF not found" });
+
+    //  check if user can access
+    const userId = Number(req.user.id);
+    if (pdf.userId !== userId && pdf.assignedToId !== userId) {
+      console.log('Unauthorized access attempt by user:', userId);
+      console.log('PDF owner:', pdf.userId, 'Assigned to:', pdf.assignedToId);
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    res.json(pdf);
   } catch (err: any) {
     console.error(err);
     res.status(500).json({ message: err.message });

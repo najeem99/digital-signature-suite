@@ -78,3 +78,26 @@ export const getPdfsByStatusAndUser = async (
   });
 };
 
+export const getPdfById = async (id: number) => {
+  return prisma.pdfFile.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      fileName: true,
+      url: true,
+      public_id: true,
+      userId: true,
+      assignedToId: true,
+      signMarking: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: { id: true, name: true }  // only select needed fields
+      },
+      assignedTo: {
+        select: { id: true, name: true }  // only select needed fields
+      },
+    },
+  });
+};

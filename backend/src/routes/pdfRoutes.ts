@@ -2,7 +2,7 @@
 import express from "express";
 import multer from "multer";
 import { protect } from "../middlewares/authMiddleware";
-import { getSignerDocuments, requestDocumentSign } from "../controllers/pdfController";
+import { getSignerDocuments, requestDocumentSign,getSignerDocumentById } from "../controllers/pdfController";
 
 const router = express.Router();
 const upload = multer(); // memory storage
@@ -166,5 +166,66 @@ router.post("/request-sign", protect, upload.single("file"), requestDocumentSign
  */
 
 router.get("/", protect, getSignerDocuments);
+
+/**
+ * @swagger
+ * /api/v1/docs/{id}:
+ *   get:
+ *     summary: Get PDF document by id for signer
+ *     description: Returns the PDF file details if the user is authorized.
+ *     tags:
+ *       - PDF
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the PDF file
+ *     responses:
+ *       200:
+ *         description: PDF document found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 fileName:
+ *                   type: string
+ *                 url:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *                 assignedTo:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *       400:
+ *         description: Missing PDF id
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: PDF not found
+ *       500:
+ *         description: Internal server error
+ */
+
+ router.get("/:id", protect, getSignerDocumentById);
 
 export default router;
