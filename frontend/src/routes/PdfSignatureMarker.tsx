@@ -1,15 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { pdfjs } from "react-pdf";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   Box,
+  CircularProgress,
+  Typography,
+  Button,
+  Paper,
+  Backdrop,
 } from "@mui/material";
 import ConfirmBoxesDialog from "../components/PdfAnnotationMarker/ConfirmBoxesDialog";
 import PdfAnnotationMarker from "../components/PdfAnnotationMarker/PdfAnnotationMarker";
-import axiosInstance from "../api/axiosInstance";
 import SuccessDialog from "../components/PdfAnnotationMarker/SuccessDialog";
+import axiosInstance from "../api/axiosInstance";
 import type { OnDocumentLoadSuccess } from "react-pdf/dist/shared/types.js";
 import Layout from "../components/Layout";
+import { useNavigate } from "react-router-dom";
+
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface DraggableBox {
@@ -25,12 +32,16 @@ const PdfSignatureMarker: React.FC = () => {
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [pageWidth, setPageWidth] = useState<number>(800);
   const [loading, setLoading] = useState<boolean>(false);
+  const [uploading, setUploading] = useState<boolean>(false);
   const [boxesPerPage, setBoxesPerPage] = useState<Record<number, DraggableBox[]>>({});
   const [selectedLabel, setSelectedLabel] = useState<string>("sign here");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [messageOpen, setMessageOpen] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
-  const [successOpen, setSuccessOpen] = useState(false);
+  const navigate = useNavigate();
 
   const labels = ["sign here", "name", "date"];
 
@@ -43,21 +54,15 @@ const PdfSignatureMarker: React.FC = () => {
   };
 
   const onDocumentLoadSuccess = (data: OnDocumentLoadSuccess) => {
-    console.log("Document loaded successfully:", data);
     setNumPages(data?.numPages);
   };
-  const onPageRenderStart = () => setLoading(true);
-  const onPageRenderSuccess = () => setLoading(false);
 
   const goToPrevPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
-  const goToNextPage = () =>
-    setPageNumber((prev) => (numPages ? Math.min(prev + 1, numPages) : prev));
+  const goToNextPage = () => setPageNumber((prev) => (numPages ? Math.min(prev + 1, numPages) : prev));
 
   useEffect(() => {
     const handleResize = () => {
-      if (containerRef.current) {
-        setPageWidth(containerRef.current.offsetWidth - 20);
-      }
+      if (containerRef.current) setPageWidth(containerRef.current.offsetWidth - 20);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -66,93 +71,116 @@ const PdfSignatureMarker: React.FC = () => {
 
   const boxes = boxesPerPage[pageNumber] || [];
 
-
-
   const handleAddBoxToState = (page: number, newBox: DraggableBox) => {
     setBoxesPerPage((prev) => ({
       ...prev,
-      [page]: [...(prev[page] || []), newBox]
+      [page]: [...(prev[page] || []), newBox],
     }));
   };
-
-
 
   const cursorStyle = boxes.find((b) => b.label === selectedLabel) ? "move" : "crosshair";
 
   const handleUpload = () => setConfirmOpen(true);
 
   const handleConfirm = async (assignedUserId: string) => {
-    console.log("Boxes to upload:", assignedUserId);
     if (!file) return;
 
     try {
+      setUploading(true);
       const formData = new FormData();
-      formData.append("file", file); // PDF file
-      formData.append("assignedToId", assignedUserId); // assignedToId from your curl
-      formData.append("signMarking", JSON.stringify(boxesPerPage)); // your boxes JSON
+      formData.append("file", file);
+      formData.append("assignedToId", assignedUserId);
+      formData.append("signMarking", JSON.stringify(boxesPerPage));
 
-      const response = await axiosInstance.post("/v1/docs/request-sign", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await axiosInstance.post("/v1/docs/request-sign", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Upload successful:", response.data);
-      setConfirmOpen(false);
-      // show success dialog
-      setSuccessOpen(true);
-
+      setMessage("Document submitted successfully for signature!");
     } catch (error) {
-      console.error("Error uploading PDF and boxes:", error);
+      console.error("Upload failed:", error);
+      setMessage("Failed to submit document for signature. Please try again.");
+    } finally {
+      setUploading(false);
+      setConfirmOpen(false);
+      setMessageOpen(true);
+
+      // Auto navigate after 2 seconds
+      setTimeout(() => {
+        navigate("/dashboard-uploader");
+      }, 2000);
     }
   };
 
-  // Function to handle dragging of boxes data
   const handleDragData = (boxIndex: number, startBox: DraggableBox, dx: number, dy: number) => {
     setBoxesPerPage((prev) => {
       const pageBoxes = [...(prev[pageNumber] || [])];
       pageBoxes[boxIndex] = { ...startBox, x: startBox.x + dx, y: startBox.y + dy };
-      console.log("Box moved:", pageBoxes[boxIndex], "on page", pageNumber);
       return { ...prev, [pageNumber]: pageBoxes };
     });
-  }
+  };
+
   return (
     <Layout>
+      <Box
+        ref={containerRef}
+        sx={{
+          minHeight: "calc(100vh - 64px)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "flex-start",
+          py: 4,
+          gap: 3,
+        }}
+      >
+        <Paper sx={{ p: 3, width: "100%", maxWidth: 900, textAlign: "center", mb: 2 }}>
+          <Typography variant="h5" gutterBottom>
+            Upload and Mark Annotations in PDF for Signature
+          </Typography>
+          <Button variant="contained" component="label">
+            Choose PDF
+            <input type="file" hidden accept="application/pdf" onChange={onFileChange} />
+          </Button>
+        </Paper>
 
-      <Box ref={containerRef} className="flex flex-col items-center p-4 w-full min-h-screen">
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={onFileChange}
-          className="mb-4 p-2 border rounded"
-        />
+        <Backdrop
+          sx={{
+            color: "#fff",
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            flexDirection: "column",
+          }}
+          open={loading || uploading}
+        >
+          <CircularProgress color="inherit" />
+          <Typography variant="body1" sx={{ mt: 2 }}>
+            {loading ? "Loading PDF..." : "Uploading..."}
+          </Typography>
+        </Backdrop>
 
-        <PdfAnnotationMarker
-          file={file}
-          pageNumber={pageNumber}
-          numPages={numPages}
-          pageWidth={pageWidth}
-          boxes={boxes}
-          cursorStyle={cursorStyle}
-          labels={labels}
-          selectedLabel={selectedLabel}
-          loading={loading}
-          pageRef={pageRef}
-          goToPrevPage={goToPrevPage}
-          goToNextPage={goToNextPage}
-          onAddBox={handleAddBoxToState} // pass callback
+        {file && (
+          <PdfAnnotationMarker
+            file={file}
+            pageNumber={pageNumber}
+            numPages={numPages}
+            pageWidth={pageWidth}
+            boxes={boxes}
+            cursorStyle={cursorStyle}
+            labels={labels}
+            selectedLabel={selectedLabel}
+            loading={loading}
+            pageRef={pageRef}
+            goToPrevPage={goToPrevPage}
+            goToNextPage={goToNextPage}
+            onAddBox={handleAddBoxToState}
+            addDataToBoxes={handleDragData}
+            setSelectedLabel={setSelectedLabel}
+            handleUpload={handleUpload}
+            onLoadSuccess={onDocumentLoadSuccess}
+          />
+        )}
 
-          // handleDrag={handleDrag}
-          addDataToBoxes={handleDragData}
-          setSelectedLabel={setSelectedLabel}
-          handleUpload={handleUpload}
-          onLoadSuccess={onDocumentLoadSuccess}
-        />
-
-
-
-
-        {/* Confirmation Dialog */}
         <ConfirmBoxesDialog
           open={confirmOpen}
           boxesPerPage={boxesPerPage}
@@ -161,9 +189,12 @@ const PdfSignatureMarker: React.FC = () => {
         />
 
         <SuccessDialog
-          open={successOpen}
-          message="Document submitted successfully for signature!"
-          onClose={() => setSuccessOpen(false)}
+          open={messageOpen}
+          message={message || ""}
+          onClose={() => {
+            setMessageOpen(false);
+            navigate("/dashboard-uploader");
+          }}
         />
       </Box>
     </Layout>
