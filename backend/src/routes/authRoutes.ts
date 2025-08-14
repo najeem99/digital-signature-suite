@@ -1,6 +1,7 @@
 
 import express from 'express';
-import { register, login } from '../controllers/authController';
+import { register, login, getUsers } from '../controllers/authController';
+import { protect } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
@@ -76,8 +77,53 @@ const router = express.Router();
  */
 
 
+ /**
+ * @swagger
+ * /api/auth/get-users:
+ *   get:
+ *     summary: Get users by role
+ *     tags:
+ *       - Auth
+ *     parameters:
+ *       - in: query
+ *         name: role
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [uploader, signer]
+ *         description: Role to filter users by
+ *     responses:
+ *       200:
+ *         description: List of users with the specified role
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: John Doe
+ *                   email:
+ *                     type: string
+ *                     example: john@example.com
+ *                   role:
+ *                     type: string
+ *                     example: uploader
+ *       400:
+ *         description: Role is required
+ *       500:
+ *         description: Internal server error
+ */
 
-router.post('/register', register);
+
+
+ router.post('/register', register);
 router.post('/login', login);
+router.get('/get-users',protect, getUsers);
 
 export default router;

@@ -1,4 +1,4 @@
-import { createUser, findUserByEmail, verifyPassword } from '../models/userModel';
+import { createUser, findUserByEmail, verifyPassword,findUsersByRole } from '../models/userModel';
 import { generateToken } from '../utils/generateToken';
 
 export const registerUser = async (name: string, email: string, password: string, role: 'uploader' | 'signer') => {
@@ -11,7 +11,7 @@ export const registerUser = async (name: string, email: string, password: string
     name: user.name,
     email: user.email,
     role: user.role,
-    token: generateToken(user.id.toString())
+    token: generateToken(user.id.toString(),user.role, user.name, user.email)
   };
 };
 
@@ -29,4 +29,8 @@ export const loginUser = async (email: string, password: string) => {
     role: user.role,
     token: generateToken(user.id.toString(),user.role, user.name, user.email)
   };
+};
+
+export const getUsersByRole = async (role: 'uploader' | 'signer') => {
+  return await findUsersByRole(role);
 };

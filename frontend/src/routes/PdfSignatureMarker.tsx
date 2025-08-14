@@ -118,13 +118,14 @@ const PdfSignatureMarker: React.FC = () => {
 
   const handleUpload = () => setConfirmOpen(true);
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (assignedUserId: string) => {
+    console.log("Boxes to upload:", assignedUserId);
     if (!file) return;
 
     try {
       const formData = new FormData();
       formData.append("file", file); // PDF file
-      formData.append("assignedToId", "2"); // assignedToId from your curl
+      formData.append("assignedToId", assignedUserId); // assignedToId from your curl
       formData.append("signMarking", JSON.stringify(boxesPerPage)); // your boxes JSON
 
       const response = await axiosInstance.post("/v1/request-sign", formData, {

@@ -20,3 +20,14 @@ export const login = async (req: Request, res: Response) => {
     res.status(401).json({ message: error.message });
   }
 };
+
+export const getUsers = async (req: Request, res: Response) => {
+  try {
+    const role = req.query.role as 'uploader' | 'signer';
+    if (!role) return res.status(400).json({ message: 'Role is required' });
+    const users = await authService.getUsersByRole(role);
+    res.json(users);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};

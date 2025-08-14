@@ -20,3 +20,15 @@ export const findUserByEmail = (email: string) => {
 export const verifyPassword = async (password: string, hashedPassword: string) => {
   return bcrypt.compare(password, hashedPassword);
 };
+
+export const findUsersByRole = async (role: 'uploader' | 'signer') => {
+  return await prisma.user.findMany({
+    where: { role },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true
+    }
+  });
+};
