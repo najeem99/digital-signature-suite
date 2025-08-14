@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { motion } from "framer-motion";
-import PdfSigner from "../components/shared/PdfSigner";
+import PdfScribbler from "../components/shared/PdfScribbler";
 export interface MenuItem {
   label: string;
   action: "navigate" | "logout";

@@ -1,13 +1,14 @@
 // pages/PdfSignerPage.tsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import PdfSigner from "../components/shared/PdfSigner";
+import PdfScribbler from "../components/shared/PdfScribbler";
 import axiosInstance from "../api/axiosInstance";
 
 const PdfSignerPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string>("signed.pdf");
+  const [signMarking, setSignMarking] = useState<any>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,7 @@ const PdfSignerPage: React.FC = () => {
         // Assuming API returns { url: string, fileName: string }
         setFileUrl(response.data.url);
         setFileName(response.data.fileName || "signed.pdf");
+        setSignMarking(response.data.signMarking || {});
       } catch (err: any) {
         if (err.response?.status === 403) {
           setError("You are not authorized to access this PDF.");
@@ -44,12 +46,15 @@ const PdfSignerPage: React.FC = () => {
   if (error) return <div style={{ color: "red" }}>{error}</div>;
   if (!fileUrl) return <div>No PDF found.</div>;
 
-  return (
-    <PdfSigner
-      fileUrl={fileUrl}
-      fileName={fileName}
-      onUploadSuccess={() => console.log("Uploaded successfully")}
-    />
+  return (<>
+  
+  <PdfScribbler
+    fileUrl={fileUrl}
+    fileName={fileName}
+    signMarking={signMarking}
+    onUploadSuccess={() => console.log("Uploaded successfully")}
+  />
+  </>
   );
 };
 

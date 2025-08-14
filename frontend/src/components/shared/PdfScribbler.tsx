@@ -12,6 +12,8 @@ interface PdfSignerProps {
   fileUrl: string;
   fileName: string;
   onUploadSuccess?: () => void;
+  signMarking?: Record<string, { x: number; y: number; id: string; label: string }[]>; // from API
+  currentUserId?: string; // assigned signer ID
 }
 
 interface Stroke {
@@ -19,7 +21,7 @@ interface Stroke {
   y: number;
 }
 
-const PdfSigner: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuccess }) => {
+const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuccess, signMarking }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -28,6 +30,12 @@ const PdfSigner: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSucces
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [pdfDimensions, setPdfDimensions] = useState({ width: 600, height: 800 });
+
+  useEffect(() => {
+    console.log("signMarking changed:", signMarking);
+
+  }, [signMarking])
+
 
   const onDocumentLoadSuccess = ({ numPages }: any) => {
     setNumPages(numPages);
@@ -147,7 +155,10 @@ const PdfSigner: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSucces
         <Page
           pageNumber={currentPage}
           width={pdfDimensions.width}
-          onRenderSuccess={({ width, height }) => setPdfDimensions({ width, height })}
+          onRenderSuccess={({ width, height }) => {
+            console.log("Page rendered:", currentPage, "Width:", width, "Height:", height);
+            setPdfDimensions({ width, height });
+          }}
           renderTextLayer={false}
           renderAnnotationLayer={false}
         />
@@ -159,7 +170,7 @@ const PdfSigner: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSucces
         width={pdfDimensions.width}
         height={pdfDimensions.height}
         style={{
-          border: "1px solid transparent",
+          border: "2px solid #000", // match PdfViewerWithToolbar
           position: "absolute",
           top: 0,
           left: 0,
@@ -168,6 +179,40 @@ const PdfSigner: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSucces
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       />
+
+
+      {/* Sign Marking Overlays */}
+      {signMarking?.[currentPage]?.map((mark) => {
+        // mark.x and mark.y are normalized (0 to 1) relative to original PDF size
+        const left = mark.x / 2;
+        const top = mark.y / 2;
+        console.log(`left: ${left}, top: ${top}, width: ${pdfDimensions.width}, height: ${pdfDimensions.height}`);
+          return (
+          <div
+            key={mark.id}
+            style={{
+              position: "absolute",
+              left: `${left}px`,
+              top: `${top}px`,
+              width: "unset",
+              height: "20px",
+              border: "2px dashed #28a746ff",
+              backgroundColor: "rgba(40, 167, 69, 0.1)",
+              pointerEvents: "none",
+              display: "flex",
+              opacity: 0.4,
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "12px",
+              color: "#28a745",
+              fontWeight: "bold",
+            }}
+          >
+            {mark.label}
+          </div>
+        );
+      })}
+
 
       {/* Navigation & Save */}
       <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
@@ -181,4 +226,4 @@ const PdfSigner: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSucces
   );
 };
 
-export default PdfSigner;
+export default PdfScribbler;

@@ -29,7 +29,7 @@ interface PdfViewerWithToolbarProps {
     setSelectedLabel: (label: string) => void;
     handleUpload: () => void;
     onLoadSuccess: (data: OnDocumentLoadSuccess) => void;
-
+    onAddBox: (pageNumber: number, newBox: DraggableBox) => void; // callback to add box
 }
 
 const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
@@ -74,11 +74,28 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
         const startBox = boxes[boxIndex];
 
         const handleMouseMove = (moveEvent: MouseEvent) => {
+            if (!pageRef.current) return;
+
+            const rect = pageRef.current.getBoundingClientRect();
             const dx = moveEvent.clientX - startX;
             const dy = moveEvent.clientY - startY;
 
-            // Update the box position
-            addDataToBoxes(boxIndex, startBox, dx, dy);
+            // Calculate proposed new position
+            let newX = startBox.x + dx;
+            let newY = startBox.y + dy;
+
+            // Assuming a fixed box size (you can store width/height in box if needed)
+            const boxWidth = 80;   // px (adjust as per your draggable box)
+            const boxHeight = 30;  // px
+
+            // Clamp to keep inside PDF boundaries
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX + boxWidth > rect.width) newX = rect.width - boxWidth;
+            if (newY + boxHeight > rect.height) newY = rect.height - boxHeight;
+
+            // Update position with clamped values
+            addDataToBoxes(boxIndex, startBox, newX - startBox.x, newY - startBox.y);
         };
 
         const handleMouseUp = () => {
@@ -141,13 +158,17 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
                 ref={pageRef}
                 className="relative inline-block"
                 onClick={handleAddBox}
-                style={{ cursor: cursorStyle }}
+                style={{
+                    cursor: cursorStyle,
+                    border: "2px solid #2196F3", // visible border around PDF
+                    borderRadius: "4px",
+                    overflow: "hidden", // ensures boxes can't visually go out
+                }}
             >
                 <Document
                     file={file}
                     onLoadError={(err) => console.error("Error loading PDF:", err)}
                     onLoadSuccess={onLoadSuccess}
-
                 >
                     <Page
                         pageNumber={pageNumber}

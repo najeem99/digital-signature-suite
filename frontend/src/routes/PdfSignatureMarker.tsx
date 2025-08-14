@@ -137,7 +137,7 @@ const PdfSignatureMarker: React.FC = () => {
         pageRef={pageRef}
         goToPrevPage={goToPrevPage}
         goToNextPage={goToNextPage}
-         onAddBox={handleAddBoxToState} // pass callback
+        onAddBox={handleAddBoxToState} // pass callback
 
         // handleDrag={handleDrag}
         addDataToBoxes={handleDragData}
