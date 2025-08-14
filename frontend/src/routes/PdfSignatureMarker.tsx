@@ -4,10 +4,10 @@ import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   Box,
 } from "@mui/material";
-import ConfirmBoxesDialog from "../components/PdfSignatureMarker/ConfirmBoxesDialog";
-import PdfViewerWithToolbar from "../components/PdfSignatureMarker/PdfViewerWithToolbar";
+import ConfirmBoxesDialog from "../components/PdfAnnotationMarker/ConfirmBoxesDialog";
+import PdfAnnotationMarker from "../components/PdfAnnotationMarker/PdfAnnotationMarker";
 import axiosInstance from "../api/axiosInstance";
-import SuccessDialog from "../components/PdfSignatureMarker/SuccessDialog";
+import SuccessDialog from "../components/PdfAnnotationMarker/SuccessDialog";
 import type { OnDocumentLoadSuccess } from "react-pdf/dist/shared/types.js";
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -124,7 +124,7 @@ const PdfSignatureMarker: React.FC = () => {
         className="mb-4 p-2 border rounded"
       />
 
-      <PdfViewerWithToolbar
+      <PdfAnnotationMarker
         file={file}
         pageNumber={pageNumber}
         numPages={numPages}

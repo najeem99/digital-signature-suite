@@ -13,7 +13,7 @@ interface DraggableBox {
     y: number;
 }
 
-interface PdfViewerWithToolbarProps {
+interface PdfAnnotationMarkerProps {
     file: File | null;
     pageNumber: number;
     numPages: number | null;
@@ -33,7 +33,7 @@ interface PdfViewerWithToolbarProps {
     onAddBox: (pageNumber: number, newBox: DraggableBox) => void; // callback to add box
 }
 
-const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
+const PdfAnnotationMarker: React.FC<PdfAnnotationMarkerProps> = ({
     file,
     pageNumber,
     numPages,
@@ -192,4 +192,4 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
     );
 };
 
-export default PdfViewerWithToolbar;
+export default PdfAnnotationMarker;
