@@ -68,26 +68,19 @@ const PdfAnnotationMarker: React.FC<PdfAnnotationMarkerProps> = ({
 
         const handleMouseMove = (moveEvent: MouseEvent) => {
             if (!pageRef.current) return;
-
             const rect = pageRef.current.getBoundingClientRect();
             const dx = moveEvent.clientX - startX;
             const dy = moveEvent.clientY - startY;
 
-            // Calculate proposed new position
-            let newX = startBox.x + dx;
-            let newY = startBox.y + dy;
+            // Convert dx/dy from pixels to normalized
+            let newX = startBox.x + dx / rect.width;
+            let newY = startBox.y + dy / rect.height;
 
-            // Assuming a fixed box size (you can store width/height in box if needed)
-            const boxWidth = 80;   // px (adjust as per your draggable box)
-            const boxHeight = 30;  // px
+            // Clamp 0-1
+            newX = Math.max(0, Math.min(1, newX));
+            newY = Math.max(0, Math.min(1, newY));
 
-            // Clamp to keep inside PDF boundaries
-            if (newX < 0) newX = 0;
-            if (newY < 0) newY = 0;
-            if (newX + boxWidth > rect.width) newX = rect.width - boxWidth;
-            if (newY + boxHeight > rect.height) newY = rect.height - boxHeight;
-
-            // Update position with clamped values
+            // Update relative position
             addDataToBoxes(boxIndex, startBox, newX - startBox.x, newY - startBox.y);
         };
 
@@ -109,8 +102,8 @@ const PdfAnnotationMarker: React.FC<PdfAnnotationMarkerProps> = ({
         }
 
         const rect = pageRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = (e.clientX - rect.left) / rect.width; // normalized 0-1
+        const y = (e.clientY - rect.top) / rect.height; // normalized 0-1
 
         const newBox: DraggableBox = {
             id: Date.now().toString(),
@@ -119,7 +112,7 @@ const PdfAnnotationMarker: React.FC<PdfAnnotationMarkerProps> = ({
             y
         };
 
-        onAddBox(pageNumber, newBox); // tell parent to update state
+        onAddBox(pageNumber, newBox);
     };
 
 
@@ -177,8 +170,8 @@ const PdfAnnotationMarker: React.FC<PdfAnnotationMarkerProps> = ({
                         onMouseDown={(e) => handleDrag(e, box.id)}
                         className="absolute px-1 py-0.5 text-xs cursor-move"
                         style={{
-                            top: box.y,
-                            left: box.x,
+                            top: `${box.y * pageRef.current!.getBoundingClientRect().height}px`,
+                            left: `${box.x * pageRef.current!.getBoundingClientRect().width}px`,
                             border: `2px solid ${LABEL_AND_COLORS[box.label] || "#000"}`,
                             backgroundColor: `${LABEL_AND_COLORS[box.label] || "#000"}33`, // translucent bg
                             color: LABEL_AND_COLORS[box.label] || "#000",
@@ -187,6 +180,7 @@ const PdfAnnotationMarker: React.FC<PdfAnnotationMarkerProps> = ({
                         {box.label}
                     </Box>
                 ))}
+
             </Box>
         </Box>
     );

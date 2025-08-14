@@ -21,7 +21,7 @@ interface Stroke {
   x: number;
   y: number;
 }
- 
+
 
 
 const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuccess, signMarking }) => {
@@ -115,13 +115,55 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
         const { width, height } = page.getSize();
 
         for (const stroke of pageStrokes) {
-          const svgPoints = stroke.map(p => [p.x / pdfDimensions.width * width, (pdfDimensions.height - p.y) / pdfDimensions.height * height]);
+          const svgPoints = stroke.map(p => [
+            p.x / pdfDimensions.width * width,
+            (pdfDimensions.height - p.y) / pdfDimensions.height * height
+          ]);
+
           for (let i = 1; i < svgPoints.length; i++) {
             const [x1, y1] = svgPoints[i - 1];
             const [x2, y2] = svgPoints[i];
-            page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, thickness: 2, color: rgb(1, 0, 0) });
+            page.drawLine({
+              start: { x: x1, y: y1 },
+              end: { x: x2, y: y2 },
+              thickness: 2,
+              color: rgb(1, 0, 0)
+            });
           }
         }
+
+        // Add automatic labels like date
+        signMarking?.[Number(pageStr)]?.forEach((mark) => {
+          let text = mark.label;
+
+          // If it's a "date" label, insert today's date
+          if (mark.label?.toLowerCase() === "date") {
+            text = new Date().toLocaleDateString("en-GB"); // DD/MM/YYYY
+             // normalized 0-1 coordinates
+            const xPos = mark.x * width;   // width = PDF page width in points
+            const yPos = (0.99 - mark.y) * height; // flip Y axis
+
+            // Log in a structured way for ChatGPT
+            console.log(JSON.stringify({
+              label: mark.label,
+              originalX: mark.x,
+              originalY: mark.y,
+              pdfWidth: pdfDimensions.width,
+              pdfHeight: pdfDimensions.height,
+              calculatedX: xPos,
+              calculatedY: yPos
+            }, null, 2));
+
+            page.drawText(text, {
+              x: xPos,
+              y: yPos,
+              size: 12,
+              color: rgb(0, 0, 0), // black text
+            });
+          }
+
+
+        });
       }
 
       const pdfBytes = await pdfDoc.save();
@@ -143,6 +185,7 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
       setLoading(false);
     }
   };
+
 
   const handlePrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
   const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, numPages));
@@ -185,12 +228,18 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
 
 
       {/* Sign Marking Overlays */}
-      {signMarking?.[currentPage]?.map((mark) => {
+      {pdfDimensions && signMarking?.[currentPage]?.map((mark) => {
         // mark.x and mark.y are normalized (0 to 1) relative to original PDF size
-        const left = mark.x / 2;
-        const top = mark.y / 2;
+        const left = mark.x * pdfDimensions.width;
+        const top = mark.y * pdfDimensions.height;;
         // Pick color based on label; fallback to grey if not found
         const color = LABEL_AND_COLORS[mark.label?.toLowerCase()] || "#9E9E9E";
+
+        // Automatically fill "date" label with today's date
+        const displayText =
+          mark.label?.toLowerCase() === "date"
+            ? new Date().toLocaleDateString("en-GB") // DD/MM/YYYY format
+            : mark.label;
 
         return (
           <div
@@ -201,11 +250,11 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
               top: `${top}px`,
               width: "unset",
               height: "20px",
-              border: "2px dashed #28a746ff",
-              backgroundColor: "rgba(40, 167, 69, 0.1)",
+              border: `2px dashed ${color}`,
+              backgroundColor: `${color}1A`, // translucent background
               pointerEvents: "none",
               display: "flex",
-              opacity: 0.4,
+              opacity: 0.8,
               alignItems: "center",
               justifyContent: "center",
               fontSize: "12px",
@@ -213,10 +262,11 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
               fontWeight: "bold",
             }}
           >
-            {mark.label}
+            {displayText}
           </div>
         );
       })}
+
 
 
       {/* Navigation & Save */}
