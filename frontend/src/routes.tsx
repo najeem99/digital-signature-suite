@@ -6,7 +6,6 @@ import Welcome from "./welcome/welcome";
 import Login from "./routes/Login";
 import Register from "./routes/Register";
 import Home from "./routes/Home";
-import UploadPdf from "./routes/UploadPdf";
 import PdfViewer from "./routes/PdfViewer";
 import PdfSignatureMarker from "./routes/PdfSignatureMarker";
 import UploaderDashboard from "./routes/UploaderDashboard";
@@ -34,10 +33,6 @@ export default function AppRoutes() {
         <Route
           path="/home"
           element={user ? <Home /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/upload-pdf"
-          element={user ? <UploadPdf /> : <Navigate to="/login" />}
         />
         <Route
           path="/view-pdf"

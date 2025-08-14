@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, Box, CircularProgress } from "@mui/material";
+import { Container, Typography, Box, CircularProgress, Grid, Card, CardContent, Alert, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import PdfGrid from "../components/shared/PdfGrid";
+import Layout from "../components/Layout";
 
 export interface PdfFile {
   id: number;
@@ -42,7 +43,6 @@ const UploaderDashboard: React.FC = () => {
   };
 
   const handleSelectPdf = (pdf: PdfFile) => {
-    console.log("Selected PDF:", pdf);
     if (pdf.status === "WAITING_FOR_APPROVAL") {
       navigate(`/review-pdf/${pdf.id}`);
     }
@@ -52,64 +52,56 @@ const UploaderDashboard: React.FC = () => {
     fetchPdfs();
   }, []);
 
-  return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Uploader Dashboard
-      </Typography>
+const renderPdfSection = (title: string, pdfs: PdfFile[], isPending = false) => (
+  <Card sx={{ mb: 4, boxShadow: 3 }}>
+    <CardContent>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h6" fontWeight="bold">
+          {title}
+        </Typography>
+        {/* Only show the button for Pending section */}
+        {title == 'Pending for Signature' && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/pdf-sign-marker")}
+          >
+            Add New Doc
+          </Button>
+        )}
+      </Box>
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" mt={4}>
-          <CircularProgress />
-        </Box>
+      {pdfs.length > 0 ? (
+        <PdfGrid pdfs={pdfs} onSelect={handleSelectPdf} truncateLength={25} />
       ) : (
-        <>
-          <Box mb={4}>
-            <Typography variant="h6" gutterBottom fontWeight="bold">
-              Pending for Signature
-            </Typography>
-            {pending.length > 0 ? (
-              <PdfGrid pdfs={pending} onSelect={handleSelectPdf} truncateLength={20} />
-            ) : (
-              <Typography>No pending documents.</Typography>
-            )}
-          </Box>
-
-          <Box mb={4}>
-            <Typography variant="h6" gutterBottom fontWeight="bold">
-              Waiting for Approval
-            </Typography>
-            {waitingApproval.length > 0 ? (
-              <PdfGrid pdfs={waitingApproval} onSelect={handleSelectPdf} truncateLength={20} />
-            ) : (
-              <Typography>No documents waiting for approval.</Typography>
-            )}
-          </Box>
-
-          <Box mb={4}>
-            <Typography variant="h6" gutterBottom fontWeight="bold">
-              Rejected Documents
-            </Typography>
-            {rejected.length > 0 ? (
-              <PdfGrid pdfs={rejected} onSelect={handleSelectPdf} truncateLength={20} />
-            ) : (
-              <Typography>No rejected documents.</Typography>
-            )}
-          </Box>
-
-          <Box mb={4}>
-            <Typography variant="h6" gutterBottom fontWeight="bold">
-              Accepted Documents
-            </Typography>
-            {accepted.length > 0 ? (
-              <PdfGrid pdfs={accepted} onSelect={handleSelectPdf} truncateLength={20} />
-            ) : (
-              <Typography>No accepted documents.</Typography>
-            )}
-          </Box>
-        </>
+        <Alert severity="info">No {title.toLowerCase()}.</Alert>
       )}
-    </Container>
+    </CardContent>
+  </Card>
+);
+
+
+  return (
+    <Layout>
+      <Container sx={{ mt: 4 }}>
+        <Typography variant="h4" gutterBottom fontWeight="bold">
+          Uploader Dashboard
+        </Typography>
+
+        {loading ? (
+          <Box display="flex" justifyContent="center" mt={4}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container direction="column" spacing={2}>
+            <Grid item>{renderPdfSection("Pending for Signature", pending)}</Grid>
+            <Grid item>{renderPdfSection("Waiting for Approval", waitingApproval)}</Grid>
+            <Grid item>{renderPdfSection("Rejected Documents", rejected)}</Grid>
+            <Grid item>{renderPdfSection("Accepted Documents", accepted)}</Grid>
+          </Grid>
+        )}
+      </Container>
+    </Layout>
   );
 };
 

@@ -13,6 +13,7 @@ export interface User {
 // Define the store state and actions
 interface AuthState {
   user: User | null;
+
   setUser: (user: User) => void;
   logout: () => void;
 }

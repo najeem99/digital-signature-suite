@@ -13,6 +13,7 @@ import {
   DialogActions,
   Typography,
 } from "@mui/material";
+import Layout from "../components/Layout";
 
 const ReviewSignedDocuments: React.FC = () => {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const ReviewSignedDocuments: React.FC = () => {
     try {
       const payload = { status: (actionType === "approve") ? "ACCEPTED" : "REJECTED" };
       await axiosInstance.post(`/v1/docs/document-action/${id}`, payload);
-       alert(`Document ${actionType}d successfully!`);
+      alert(`Document ${actionType}d successfully!`);
       navigate("/dashboard-uploader");
     } catch (err) {
       console.error(err);
@@ -82,7 +83,7 @@ const ReviewSignedDocuments: React.FC = () => {
   if (!fileUrl) return <div>No PDF found.</div>;
 
   return (
-    <>
+    <Layout>
       {uploading && (
         <Box
           sx={{
@@ -104,7 +105,8 @@ const ReviewSignedDocuments: React.FC = () => {
 
       {/* Toolbar */}
       <Box sx={{
-        display: "flex", gap: 2, mb: 2,justifyContent:'center'}}>
+        display: "flex", gap: 2, mb: 2, justifyContent: 'center'
+      }}>
         <Button
           variant="contained"
           color="success"
@@ -142,7 +144,7 @@ const ReviewSignedDocuments: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Layout>
   );
 };
 

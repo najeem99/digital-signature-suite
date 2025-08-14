@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { Box, Button, Typography, CircularProgress } from "@mui/material";
+import Layout from "../components/Layout";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -44,6 +45,7 @@ const PdfViewer: React.FC = () => {
   }, []);
 
   return (
+    <Layout>
     <Box
       ref={containerRef}
       className="flex flex-col items-center p-4 w-full min-h-screen"
@@ -101,6 +103,7 @@ const PdfViewer: React.FC = () => {
         </Box>
       )}
     </Box>
+    </Layout>
   );
 };
 

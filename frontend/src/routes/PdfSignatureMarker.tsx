@@ -9,6 +9,7 @@ import PdfAnnotationMarker from "../components/PdfAnnotationMarker/PdfAnnotation
 import axiosInstance from "../api/axiosInstance";
 import SuccessDialog from "../components/PdfAnnotationMarker/SuccessDialog";
 import type { OnDocumentLoadSuccess } from "react-pdf/dist/shared/types.js";
+import Layout from "../components/Layout";
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface DraggableBox {
@@ -116,53 +117,56 @@ const PdfSignatureMarker: React.FC = () => {
     });
   }
   return (
-    <Box ref={containerRef} className="flex flex-col items-center p-4 w-full min-h-screen">
-      <input
-        type="file"
-        accept="application/pdf"
-        onChange={onFileChange}
-        className="mb-4 p-2 border rounded"
-      />
+    <Layout>
 
-      <PdfAnnotationMarker
-        file={file}
-        pageNumber={pageNumber}
-        numPages={numPages}
-        pageWidth={pageWidth}
-        boxes={boxes}
-        cursorStyle={cursorStyle}
-        labels={labels}
-        selectedLabel={selectedLabel}
-        loading={loading}
-        pageRef={pageRef}
-        goToPrevPage={goToPrevPage}
-        goToNextPage={goToNextPage}
-        onAddBox={handleAddBoxToState} // pass callback
+      <Box ref={containerRef} className="flex flex-col items-center p-4 w-full min-h-screen">
+        <input
+          type="file"
+          accept="application/pdf"
+          onChange={onFileChange}
+          className="mb-4 p-2 border rounded"
+        />
 
-        // handleDrag={handleDrag}
-        addDataToBoxes={handleDragData}
-        setSelectedLabel={setSelectedLabel}
-        handleUpload={handleUpload}
-        onLoadSuccess={onDocumentLoadSuccess}
-      />
+        <PdfAnnotationMarker
+          file={file}
+          pageNumber={pageNumber}
+          numPages={numPages}
+          pageWidth={pageWidth}
+          boxes={boxes}
+          cursorStyle={cursorStyle}
+          labels={labels}
+          selectedLabel={selectedLabel}
+          loading={loading}
+          pageRef={pageRef}
+          goToPrevPage={goToPrevPage}
+          goToNextPage={goToNextPage}
+          onAddBox={handleAddBoxToState} // pass callback
+
+          // handleDrag={handleDrag}
+          addDataToBoxes={handleDragData}
+          setSelectedLabel={setSelectedLabel}
+          handleUpload={handleUpload}
+          onLoadSuccess={onDocumentLoadSuccess}
+        />
 
 
 
 
-      {/* Confirmation Dialog */}
-      <ConfirmBoxesDialog
-        open={confirmOpen}
-        boxesPerPage={boxesPerPage}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={handleConfirm}
-      />
+        {/* Confirmation Dialog */}
+        <ConfirmBoxesDialog
+          open={confirmOpen}
+          boxesPerPage={boxesPerPage}
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={handleConfirm}
+        />
 
-      <SuccessDialog
-        open={successOpen}
-        message="Document submitted successfully for signature!"
-        onClose={() => setSuccessOpen(false)}
-      />
-    </Box>
+        <SuccessDialog
+          open={successOpen}
+          message="Document submitted successfully for signature!"
+          onClose={() => setSuccessOpen(false)}
+        />
+      </Box>
+    </Layout>
   );
 };
 

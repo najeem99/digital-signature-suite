@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import PdfScribbler from "../components/shared/PdfScribbler";
 import axiosInstance from "../api/axiosInstance";
 import { CircularProgress, Box } from "@mui/material";
+import Layout from "../components/Layout";
 
 const PdfSignerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -68,7 +69,8 @@ const PdfSignerPage: React.FC = () => {
   if (!fileUrl) return <div>No PDF found.</div>;
 
   return (
-    <>
+       <Layout>
+
       {uploading && (
         <Box
           sx={{
@@ -95,7 +97,7 @@ const PdfSignerPage: React.FC = () => {
         onUploadSuccess={() => console.log("Uploaded successfully")}
         onUploadPdf={onUploadPdf}
       />
-    </>
+    </Layout>
   );
 };
 
