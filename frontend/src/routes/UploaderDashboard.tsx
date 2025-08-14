@@ -43,7 +43,9 @@ const UploaderDashboard: React.FC = () => {
 
   const handleSelectPdf = (pdf: PdfFile) => {
     console.log("Selected PDF:", pdf);
-    // navigate(`/pdf-marker/${pdf.id}`);
+    if (pdf.status === "WAITING_FOR_APPROVAL") {
+      navigate(`/review-pdf/${pdf.id}`);
+    }
   };
 
   useEffect(() => {

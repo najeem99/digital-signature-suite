@@ -120,3 +120,12 @@ export const updatePdfDetails = async (id: number, data: {
     },
   });
 };
+
+export const handlePdfApproveReject = async (id: number, status: "ACCEPTED" | "REJECTED") => {
+  return prisma.pdfFile.update({
+    where: { id },
+    data: {
+      status, // directly assign the enum/string value
+    },
+  });
+};

@@ -101,3 +101,27 @@ export const addSignedDocument = async (req: Request, res: Response) => {
     res.status(500).json({ message: err.message });
   }
 };
+export const onPdfApproveReject = async (req: Request, res: Response) => {
+  try {
+    console.log("Approving or rejecting PDF with id:", req.params.id);
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ message: "id is required" });
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    const pdf = await pdfService.getPdfById(id);
+    if (!pdf) return res.status(404).json({ message: "PDF not found" });
+    console.log(typeof pdf.assignedToId, typeof Number(req.user.id))
+    if (pdf.assignedToId !== Number(req.user.id))
+      return res.status(403).json({ message: "Not allowed" });
+
+    const status = req.body.status as 'ACCEPTED' | 'REJECTED';
+    if (!status) return res.status(400).json({ message: "Status is required" });
+
+    const savedPdf = await pdfService.handlePdfApproveReject(id, status);
+
+    res.json({ message: `Document ${pdf.fileName} updated successfully!`, pdf: savedPdf });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+};

@@ -2,7 +2,7 @@
 import express from "express";
 import multer from "multer";
 import { protect } from "../middlewares/authMiddleware";
-import { getSignerDocuments, requestDocumentSign, getSignerDocumentById, addSignedDocument } from "../controllers/pdfController";
+import { getSignerDocuments, requestDocumentSign, getSignerDocumentById, addSignedDocument, onPdfApproveReject } from "../controllers/pdfController";
 
 const router = express.Router();
 const upload = multer(); // memory storage
@@ -302,6 +302,73 @@ router.get("/:id", protect, getSignerDocumentById);
 
 router.post("/sign-documents/:id", protect, upload.single("file"), addSignedDocument);
 
+/**
+ * @swagger
+ * /api/v1/docs/document-action/{id}:
+ *   post:
+ *     summary: Approve or reject a PDF document
+ *     description: Updates the status of a PDF document (ACCEPTED or REJECTED) by ID. Only the assigned user can perform this action.
+ *     tags:
+ *       - PDF
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the PDF document to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [ACCEPTED, REJECTED]
+ *                 description: New status of the PDF document
+ *     security:
+ *       - bearerAuth: []   # JWT authentication
+ *     responses:
+ *       200:
+ *         description: PDF document status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Document test-file.pdf updated successfully!"
+ *                 pdf:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     fileName:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       enum: [WAITING_FOR_SIGNER, WAITING_FOR_APPROVAL, REJECTED, ACCEPTED]
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Missing or invalid ID or status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (not allowed to update this PDF)
+ *       404:
+ *         description: PDF not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/document-action/:id", protect, onPdfApproveReject);
 
+ 
 
 export default router;
