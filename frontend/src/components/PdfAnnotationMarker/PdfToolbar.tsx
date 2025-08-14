@@ -26,9 +26,9 @@ const PdfToolbar: React.FC<PdfToolbarProps> = ({
   boxes,
 }) => {
   return (
-    <Box className="flex flex-col md:flex-row items-center justify-between p-3 rounded shadow-md bg-gray-100 mb-4 space-y-2 md:space-y-0">
+    <Box className="flex flex-col md:flex-row items-center justify-between p-3 rounded shadow-md bg-gray-100 mb-4 space-y-2 md:space-y-0 w-full">
       {/* Field selection */}
-      <Box className="flex items-center space-x-2">
+      <Box className="flex items-center space-x-2  "   >
         <Typography className="font-semibold">Place Field:</Typography>
         <Select
           value={selectedLabel}
@@ -43,12 +43,7 @@ const PdfToolbar: React.FC<PdfToolbarProps> = ({
           ))}
         </Select>
 
-        {!boxes.find((b) => b.label === selectedLabel) && (
-          <Typography className="text-gray-600 text-sm ml-2 hidden md:block">
-            Click on PDF to add selected field
-          </Typography>
-        )}
-      </Box>
+       </Box>
 
       {/* Page navigation */}
       <Box className="flex items-center space-x-2 justify-center flex-1">

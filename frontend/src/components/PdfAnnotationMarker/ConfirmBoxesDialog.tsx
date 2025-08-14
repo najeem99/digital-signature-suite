@@ -14,7 +14,11 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
+  Box,
+  Avatar,
+  Divider,
 } from "@mui/material";
+import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
 import axiosInstance from "../../api/axiosInstance";
 
 interface DraggableBox {
@@ -69,10 +73,21 @@ const ConfirmBoxesDialog: React.FC<ConfirmBoxesDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Confirm Box Selections</DialogTitle>
+      {/* Dialog Header */}
+      <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Avatar sx={{ bgcolor: "primary.main" }}>
+          <AssignmentIndIcon />
+        </Avatar>
+        <Typography variant="h6">Review & Assign Signature Fields</Typography>
+      </DialogTitle>
+
       <DialogContent>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Assign the selected fields to a signer and review the box placement before confirming.
+        </Typography>
+
         {/* Assign to Dropdown */}
-        <FormControl fullWidth sx={{ mb: 2 }} error={!!error}>
+        <FormControl fullWidth sx={{ mb: 3 }} error={!!error}>
           <InputLabel>Assign to</InputLabel>
           <Select
             value={selectedSigner}
@@ -90,13 +105,30 @@ const ConfirmBoxesDialog: React.FC<ConfirmBoxesDialogProps> = ({
           {error && <FormHelperText>{error}</FormHelperText>}
         </FormControl>
 
+        <Divider sx={{ my: 2 }} />
+
         {/* Boxes List */}
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          Selected Fields
+        </Typography>
+
         {Object.keys(boxesPerPage).length === 0 ? (
-          <Typography>No boxes added.</Typography>
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: "grey.100",
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              No boxes have been added yet.
+            </Typography>
+          </Box>
         ) : (
           <List>
             {Object.entries(boxesPerPage).map(([page, boxes]) => (
-              <ListItem key={page}>
+              <ListItem key={page} sx={{ borderBottom: "1px solid #eee" }}>
                 <ListItemText
                   primary={`Page ${page}`}
                   secondary={boxes.map((b) => b.label).join(", ")}
@@ -106,15 +138,19 @@ const ConfirmBoxesDialog: React.FC<ConfirmBoxesDialogProps> = ({
           </List>
         )}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+
+      {/* Actions */}
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} variant="outlined" color="inherit">
+          Cancel
+        </Button>
         <Button
           variant="contained"
           color="primary"
           onClick={handleConfirm}
           disabled={!selectedSigner}
         >
-          Confirm
+          Confirm & Assign
         </Button>
       </DialogActions>
     </Dialog>
