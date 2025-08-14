@@ -5,6 +5,7 @@ import { Box, Button, CircularProgress, Stack } from "@mui/material";
 import axiosInstance from "../../api/axiosInstance";
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { saveAs } from "file-saver";
+import { LABEL_AND_COLORS } from "../../constants/labelColors"; // Assuming you have a constants file for label colors
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -20,6 +21,8 @@ interface Stroke {
   x: number;
   y: number;
 }
+ 
+
 
 const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuccess, signMarking }) => {
   const [numPages, setNumPages] = useState<number>(0);
@@ -186,8 +189,10 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
         // mark.x and mark.y are normalized (0 to 1) relative to original PDF size
         const left = mark.x / 2;
         const top = mark.y / 2;
-        console.log(`left: ${left}, top: ${top}, width: ${pdfDimensions.width}, height: ${pdfDimensions.height}`);
-          return (
+        // Pick color based on label; fallback to grey if not found
+        const color = LABEL_AND_COLORS[mark.label?.toLowerCase()] || "#9E9E9E";
+
+        return (
           <div
             key={mark.id}
             style={{
@@ -204,7 +209,7 @@ const PdfScribbler: React.FC<PdfSignerProps> = ({ fileUrl, fileName, onUploadSuc
               alignItems: "center",
               justifyContent: "center",
               fontSize: "12px",
-              color: "#28a745",
+              color: color,
               fontWeight: "bold",
             }}
           >

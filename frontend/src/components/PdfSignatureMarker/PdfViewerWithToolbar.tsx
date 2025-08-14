@@ -4,6 +4,7 @@ import { Document, Page } from "react-pdf";
 import { Box, CircularProgress } from "@mui/material";
 import PdfToolbar from "./PdfToolbar";
 import type { OnDocumentLoadSuccess } from "react-pdf/dist/shared/types.js";
+import { LABEL_AND_COLORS } from "../../constants/labelColors"; // Assuming you have a constants file for label colors
 
 interface DraggableBox {
     id: string;
@@ -54,14 +55,6 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
 }) => {
     if (!file) return null;
 
-
-    // Define static colors per label
-    const labelColors: Record<string, string> = {
-        "sign here": "#1E88E5", // blue
-        "name": "#43A047",      // green
-        "date": "#F4511E",      // orange
-        // add more labels if needed
-    };
 
     // Drag logic
     const handleDrag = (e: React.MouseEvent, id: string) => {
@@ -186,9 +179,9 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
                         style={{
                             top: box.y,
                             left: box.x,
-                            border: `2px solid ${labelColors[box.label] || "#000"}`,
-                            backgroundColor: `${labelColors[box.label] || "#000"}33`, // translucent bg
-                            color: labelColors[box.label] || "#000",
+                            border: `2px solid ${LABEL_AND_COLORS[box.label] || "#000"}`,
+                            backgroundColor: `${LABEL_AND_COLORS[box.label] || "#000"}33`, // translucent bg
+                            color: LABEL_AND_COLORS[box.label] || "#000",
                         }}
                     >
                         {box.label}
