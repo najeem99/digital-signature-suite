@@ -8,6 +8,7 @@ import ConfirmBoxesDialog from "../components/PdfSignatureMarker/ConfirmBoxesDia
 import PdfViewerWithToolbar from "../components/PdfSignatureMarker/PdfViewerWithToolbar";
 import axiosInstance from "../api/axiosInstance";
 import SuccessDialog from "../components/PdfSignatureMarker/SuccessDialog";
+import type { OnDocumentLoadSuccess } from "react-pdf/dist/shared/types.js";
 pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
 
 interface DraggableBox {
@@ -40,8 +41,9 @@ const PdfSignatureMarker: React.FC = () => {
     }
   };
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
+  const onDocumentLoadSuccess = (data: OnDocumentLoadSuccess) => {
+    console.log("Document loaded successfully:", data);
+    setNumPages(data?.numPages);
   };
   const onPageRenderStart = () => setLoading(true);
   const onPageRenderSuccess = () => setLoading(false);
@@ -170,6 +172,7 @@ const PdfSignatureMarker: React.FC = () => {
         handleDrag={handleDrag}
         setSelectedLabel={setSelectedLabel}
         handleUpload={handleUpload}
+        onLoadSuccess={onDocumentLoadSuccess}
       />
 
 

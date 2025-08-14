@@ -3,6 +3,7 @@ import React from "react";
 import { Document, Page } from "react-pdf";
 import { Box, CircularProgress } from "@mui/material";
 import PdfToolbar from "./PdfToolbar";
+import type { OnDocumentLoadSuccess } from "react-pdf/dist/shared/types.js";
 
 interface DraggableBox {
     id: string;
@@ -28,6 +29,7 @@ interface PdfViewerWithToolbarProps {
     handleDrag: (e: React.MouseEvent, id: string) => void;
     setSelectedLabel: (label: string) => void;
     handleUpload: () => void;
+    onLoadSuccess: (data:OnDocumentLoadSuccess) => void;
 }
 
 const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
@@ -47,6 +49,7 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
     handleDrag,
     setSelectedLabel,
     handleUpload,
+    onLoadSuccess
 }) => {
     if (!file) return null;
 
@@ -89,6 +92,8 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
                 <Document
                     file={file}
                     onLoadError={(err) => console.error("Error loading PDF:", err)}
+                    onLoadSuccess={onLoadSuccess}
+
                 >
                     <Page
                         pageNumber={pageNumber}
