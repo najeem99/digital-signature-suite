@@ -8,6 +8,7 @@ import Register from "./routes/Register";
 import Home from "./routes/Home";
 import UploadPdf from "./routes/UploadPdf";
 import PdfViewer from "./routes/PdfViewer";
+import PdfSignatureMarker from "./routes/PdfSignatureMarker";
 export default function AppRoutes() {
   const { user } = useAuthStore();
 
@@ -37,6 +38,10 @@ export default function AppRoutes() {
         <Route
           path="/view-pdf"
           element={user ? <PdfViewer /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/pdf-sign-marker"
+          element={user ? <PdfSignatureMarker /> : <Navigate to="/login" />}
         />
 
         {/* Catch-all */}

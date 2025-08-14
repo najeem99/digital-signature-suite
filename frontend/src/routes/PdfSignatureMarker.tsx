@@ -1,0 +1,167 @@
+import React, { useState, useEffect, useRef } from "react";
+import { pdfjs } from "react-pdf";
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import {
+  Box,
+} from "@mui/material";
+import ConfirmBoxesDialog from "../components/PdfSignatureMarker/ConfirmBoxesDialog";
+import PdfViewerWithToolbar from "../components/PdfSignatureMarker/PdfViewerWithToolbar";
+
+pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+
+interface DraggableBox {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+}
+
+const PdfSignatureMarker: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pageWidth, setPageWidth] = useState<number>(800);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [boxesPerPage, setBoxesPerPage] = useState<Record<number, DraggableBox[]>>({});
+  const [selectedLabel, setSelectedLabel] = useState<string>("sign here");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  const labels = ["sign here", "name", "date"];
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setPageNumber(1);
+      setBoxesPerPage({});
+    }
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
+    setNumPages(numPages);
+  };
+  const onPageRenderStart = () => setLoading(true);
+  const onPageRenderSuccess = () => setLoading(false);
+
+  const goToPrevPage = () => setPageNumber((prev) => Math.max(prev - 1, 1));
+  const goToNextPage = () =>
+    setPageNumber((prev) => (numPages ? Math.min(prev + 1, numPages) : prev));
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setPageWidth(containerRef.current.offsetWidth - 20);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const boxes = boxesPerPage[pageNumber] || [];
+
+  const handleAddBox = (e: React.MouseEvent) => {
+    if (!pageRef.current) return;
+    if (boxes.find((b) => b.label === selectedLabel)) {
+      console.log(`Box for "${selectedLabel}" already exists on this page.`);
+      return;
+    }
+
+    const rect = pageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const newBox: DraggableBox = { id: Date.now().toString(), label: selectedLabel, x, y };
+
+    setBoxesPerPage((prev) => {
+      const updated = { ...prev, [pageNumber]: [...boxes, newBox] };
+      console.log("New box added:", newBox, "on page", pageNumber);
+      return updated;
+    });
+  };
+
+  // Drag logic
+  const handleDrag = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    const boxIndex = boxes.findIndex((b) => b.id === id);
+    if (boxIndex === -1) return;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startBox = boxes[boxIndex];
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+
+      setBoxesPerPage((prev) => {
+        const pageBoxes = [...(prev[pageNumber] || [])];
+        pageBoxes[boxIndex] = { ...startBox, x: startBox.x + dx, y: startBox.y + dy };
+        console.log("Box moved:", pageBoxes[boxIndex], "on page", pageNumber);
+        return { ...prev, [pageNumber]: pageBoxes };
+      });
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const cursorStyle = boxes.find((b) => b.label === selectedLabel) ? "move" : "crosshair";
+
+  const handleUpload = () => setConfirmOpen(true);
+
+  const handleConfirm = () => {
+    console.log("Confirmed boxes:", boxesPerPage);
+    setConfirmOpen(false);
+    // Here you can send boxesPerPage to backend
+  };
+
+  return (
+    <Box ref={containerRef} className="flex flex-col items-center p-4 w-full min-h-screen">
+      <input
+        type="file"
+        accept="application/pdf"
+        onChange={onFileChange}
+        className="mb-4 p-2 border rounded"
+      />
+
+      <PdfViewerWithToolbar
+        file={file}
+        pageNumber={pageNumber}
+        numPages={numPages}
+        pageWidth={pageWidth}
+        boxes={boxes}
+        cursorStyle={cursorStyle}
+        labels={labels}
+        selectedLabel={selectedLabel}
+        loading={loading}
+        pageRef={pageRef}
+        goToPrevPage={goToPrevPage}
+        goToNextPage={goToNextPage}
+        handleAddBox={handleAddBox}
+        handleDrag={handleDrag}
+        setSelectedLabel={setSelectedLabel}
+        handleUpload={handleUpload}
+      />
+
+
+
+
+      {/* Confirmation Dialog */}
+      <ConfirmBoxesDialog
+        open={confirmOpen}
+        boxesPerPage={boxesPerPage}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirm}
+      />
+    </Box>
+  );
+};
+
+export default PdfSignatureMarker;
