@@ -7,6 +7,7 @@ import Login from "./routes/Login";
 import Register from "./routes/Register";
 import Home from "./routes/Home";
 import UploadPdf from "./routes/UploadPdf";
+import PdfViewer from "./routes/PdfViewer";
 export default function AppRoutes() {
   const { user } = useAuthStore();
 
@@ -32,6 +33,10 @@ export default function AppRoutes() {
         <Route
           path="/upload-pdf"
           element={user ? <UploadPdf /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/view-pdf"
+          element={user ? <PdfViewer /> : <Navigate to="/login" />}
         />
 
         {/* Catch-all */}
