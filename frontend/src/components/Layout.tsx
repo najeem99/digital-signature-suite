@@ -49,7 +49,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const filteredMenu = menuItems.filter((item) => item.roles?.includes(user.role));
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
+    <Box sx={{ display: "flex", flexDirection: "column",marginBottom: "64px" }}>
       {/* Navbar */}
       <AppNavbar
         open={open}
@@ -98,8 +98,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <Box
           component="main"
           sx={{
-            border: "1px solid #e0e0e0",
-            flexGrow: 1,
+             flexGrow: 1,
             marginTop: "64px",
             transition: "margin 0.3s",
           }}

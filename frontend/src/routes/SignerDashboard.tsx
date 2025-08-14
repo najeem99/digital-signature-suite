@@ -4,11 +4,16 @@ import {
   Typography,
   Box,
   CircularProgress,
+  Grid,
+  Card,
+  CardContent,
+  Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import PdfGrid from "../components/shared/PdfGrid";
 import Layout from "../components/Layout";
+
 export interface PdfFile {
   id: number;
   fileName: string;
@@ -33,7 +38,6 @@ const SignerDashboard: React.FC = () => {
       const pdfs: PdfFile[] = res.data;
 
       setPending(pdfs.filter((p) => p.status === "WAITING_FOR_SIGNER"));
-      // setSigned(pdfs.filter((p) => p.status === "ACCEPTED")); // if needed later
     } catch (err) {
       console.error("Error fetching PDFs:", err);
     } finally {
@@ -42,7 +46,6 @@ const SignerDashboard: React.FC = () => {
   };
 
   const handleSelectPdf = (pdf: PdfFile) => {
-    console.log("Selected PDF:", pdf);
     navigate(`/sign-pdf/${pdf.id}`);
   };
 
@@ -50,10 +53,28 @@ const SignerDashboard: React.FC = () => {
     fetchPdfs();
   }, []);
 
+  const renderPdfSection = (title: string, pdfs: PdfFile[]) => (
+    <Card sx={{ mb: 4, boxShadow: 3 }}>
+      <CardContent>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6" fontWeight="bold">
+            {title}
+          </Typography>
+        </Box>
+
+        {pdfs.length > 0 ? (
+          <PdfGrid pdfs={pdfs} onSelect={handleSelectPdf} truncateLength={25} />
+        ) : (
+          <Alert severity="info">No {title.toLowerCase()}.</Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <Layout>
       <Container sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom fontWeight="bold">
           Signer Dashboard
         </Typography>
 
@@ -62,22 +83,9 @@ const SignerDashboard: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <>
-            <Box mb={4}>
-              <Typography variant="h6" gutterBottom fontWeight="bold">
-                Pending for Signature
-              </Typography>
-              {pending.length > 0 ? (
-                <PdfGrid
-                  pdfs={pending}
-                  onSelect={handleSelectPdf}
-                  truncateLength={20}
-                />
-              ) : (
-                <Typography>No pending documents.</Typography>
-              )}
-            </Box>
-          </>
+          <Grid container direction="column" spacing={2}>
+            <Grid item>{renderPdfSection("Pending for Signature", pending)}</Grid>
+          </Grid>
         )}
       </Container>
     </Layout>

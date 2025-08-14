@@ -97,7 +97,7 @@ const renderPdfSection = (title: string, pdfs: PdfFile[], isPending = false) => 
             <Grid item>{renderPdfSection("Pending for Signature", pending)}</Grid>
             <Grid item>{renderPdfSection("Waiting for Approval", waitingApproval)}</Grid>
             <Grid item>{renderPdfSection("Rejected Documents", rejected)}</Grid>
-            <Grid item>{renderPdfSection("Accepted Documents", accepted)}</Grid>
+            <Grid item>{renderPdfSection("Approved Documents", accepted)}</Grid>
           </Grid>
         )}
       </Container>

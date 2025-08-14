@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogActions,
   Typography,
+  Paper,
 } from "@mui/material";
 import Layout from "../components/Layout";
 
@@ -26,6 +27,11 @@ const ReviewSignedDocuments: React.FC = () => {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
+
+  // Message Dialog states
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
 
   useEffect(() => {
     const fetchPdfUrl = async () => {
@@ -65,21 +71,44 @@ const ReviewSignedDocuments: React.FC = () => {
 
     setUploading(true);
     try {
-      const payload = { status: (actionType === "approve") ? "ACCEPTED" : "REJECTED" };
+      const payload = { status: actionType === "approve" ? "ACCEPTED" : "REJECTED" };
       await axiosInstance.post(`/v1/docs/document-action/${id}`, payload);
-      alert(`Document ${actionType}d successfully!`);
-      navigate("/dashboard-uploader");
+
+      setMessageText(`Document ${actionType}d successfully!`);
+      setMessageType("success");
+      setMessageOpen(true);
     } catch (err) {
       console.error(err);
-      alert(`Failed to ${actionType} document.`);
+      setMessageText(`Failed to ${actionType} document.`);
+      setMessageType("error");
+      setMessageOpen(true);
     } finally {
       setUploading(false);
       setConfirmOpen(false);
     }
   };
 
+  const handleMessageClose = () => {
+    setMessageOpen(false);
+    if (messageType === "success") {
+      navigate("/dashboard-uploader");
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: "red" }}>{error}</div>;
+  if (error) {
+    return (
+      <Dialog open={true}>
+        <DialogTitle>Error</DialogTitle>
+        <DialogContent>
+          <Typography color="error">{error}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => navigate("/dashboard-uploader")}>OK</Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
   if (!fileUrl) return <div>No PDF found.</div>;
 
   return (
@@ -103,10 +132,21 @@ const ReviewSignedDocuments: React.FC = () => {
         </Box>
       )}
 
-      {/* Toolbar */}
-      <Box sx={{
-        display: "flex", gap: 2, mb: 2, justifyContent: 'center'
-      }}>
+      {/* Toolbar inside Paper */}
+      <Paper
+        elevation={3}
+        sx={{
+          p: 2,
+          width: "100%",
+          maxWidth: 800,
+          margin: "0 auto",
+          textAlign: "center",
+          mb: 2,
+          display: "flex",
+          gap: 2,
+          justifyContent: "center",
+        }}
+      >
         <Button
           variant="contained"
           color="success"
@@ -121,7 +161,7 @@ const ReviewSignedDocuments: React.FC = () => {
         >
           Reject
         </Button>
-      </Box>
+      </Paper>
 
       {/* PDF Viewer */}
       <PdfUrlViewer fileUrl={fileUrl} />
@@ -141,6 +181,26 @@ const ReviewSignedDocuments: React.FC = () => {
             color={actionType === "approve" ? "success" : "error"}
           >
             {actionType?.toUpperCase()}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Persistent Message Dialog */}
+      <Dialog open={messageOpen} onClose={handleMessageClose}>
+        <DialogTitle>
+          {messageType === "success" ? "Success" : "Error"}
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            color={messageType === "error" ? "error" : "primary"}
+            sx={{ fontWeight: 500 }}
+          >
+            {messageText}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleMessageClose} autoFocus>
+            OK
           </Button>
         </DialogActions>
       </Dialog>
