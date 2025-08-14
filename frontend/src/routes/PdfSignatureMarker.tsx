@@ -65,56 +65,16 @@ const PdfSignatureMarker: React.FC = () => {
 
   const boxes = boxesPerPage[pageNumber] || [];
 
-  const handleAddBox = (e: React.MouseEvent) => {
-    if (!pageRef.current) return;
-    if (boxes.find((b) => b.label === selectedLabel)) {
-      console.log(`Box for "${selectedLabel}" already exists on this page.`);
-      return;
-    }
 
-    const rect = pageRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
 
-    const newBox: DraggableBox = { id: Date.now().toString(), label: selectedLabel, x, y };
-
-    setBoxesPerPage((prev) => {
-      const updated = { ...prev, [pageNumber]: [...boxes, newBox] };
-      console.log("New box added:", newBox, "on page", pageNumber);
-      return updated;
-    });
+  const handleAddBoxToState = (page: number, newBox: DraggableBox) => {
+    setBoxesPerPage((prev) => ({
+      ...prev,
+      [page]: [...(prev[page] || []), newBox]
+    }));
   };
 
-  // Drag logic
-  const handleDrag = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    const boxIndex = boxes.findIndex((b) => b.id === id);
-    if (boxIndex === -1) return;
 
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startBox = boxes[boxIndex];
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const dx = moveEvent.clientX - startX;
-      const dy = moveEvent.clientY - startY;
-
-      setBoxesPerPage((prev) => {
-        const pageBoxes = [...(prev[pageNumber] || [])];
-        pageBoxes[boxIndex] = { ...startBox, x: startBox.x + dx, y: startBox.y + dy };
-        console.log("Box moved:", pageBoxes[boxIndex], "on page", pageNumber);
-        return { ...prev, [pageNumber]: pageBoxes };
-      });
-    };
-
-    const handleMouseUp = () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  };
 
   const cursorStyle = boxes.find((b) => b.label === selectedLabel) ? "move" : "crosshair";
 
@@ -146,6 +106,15 @@ const PdfSignatureMarker: React.FC = () => {
     }
   };
 
+  // Function to handle dragging of boxes data
+  const handleDragData = (boxIndex: number, startBox: DraggableBox, dx: number, dy: number) => {
+    setBoxesPerPage((prev) => {
+      const pageBoxes = [...(prev[pageNumber] || [])];
+      pageBoxes[boxIndex] = { ...startBox, x: startBox.x + dx, y: startBox.y + dy };
+      console.log("Box moved:", pageBoxes[boxIndex], "on page", pageNumber);
+      return { ...prev, [pageNumber]: pageBoxes };
+    });
+  }
   return (
     <Box ref={containerRef} className="flex flex-col items-center p-4 w-full min-h-screen">
       <input
@@ -168,8 +137,10 @@ const PdfSignatureMarker: React.FC = () => {
         pageRef={pageRef}
         goToPrevPage={goToPrevPage}
         goToNextPage={goToNextPage}
-        handleAddBox={handleAddBox}
-        handleDrag={handleDrag}
+         onAddBox={handleAddBoxToState} // pass callback
+
+        // handleDrag={handleDrag}
+        addDataToBoxes={handleDragData}
         setSelectedLabel={setSelectedLabel}
         handleUpload={handleUpload}
         onLoadSuccess={onDocumentLoadSuccess}

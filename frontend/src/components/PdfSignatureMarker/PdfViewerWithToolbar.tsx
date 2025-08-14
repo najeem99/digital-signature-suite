@@ -25,11 +25,11 @@ interface PdfViewerWithToolbarProps {
     pageRef: React.RefObject<HTMLDivElement>;
     goToPrevPage: () => void;
     goToNextPage: () => void;
-    handleAddBox: (e: React.MouseEvent) => void;
-    handleDrag: (e: React.MouseEvent, id: string) => void;
+    addDataToBoxes: (boxIndex: number, startBox: DraggableBox, dx: number, dy: number) => void;
     setSelectedLabel: (label: string) => void;
     handleUpload: () => void;
-    onLoadSuccess: (data:OnDocumentLoadSuccess) => void;
+    onLoadSuccess: (data: OnDocumentLoadSuccess) => void;
+
 }
 
 const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
@@ -45,13 +45,15 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
     pageRef,
     goToPrevPage,
     goToNextPage,
-    handleAddBox,
-    handleDrag,
+    addDataToBoxes,
     setSelectedLabel,
     handleUpload,
-    onLoadSuccess
+    onLoadSuccess,
+    onAddBox, // <-- new callback from parent
+
 }) => {
     if (!file) return null;
+
 
     // Define static colors per label
     const labelColors: Record<string, string> = {
@@ -60,6 +62,58 @@ const PdfViewerWithToolbar: React.FC<PdfViewerWithToolbarProps> = ({
         "date": "#F4511E",      // orange
         // add more labels if needed
     };
+
+    // Drag logic
+    const handleDrag = (e: React.MouseEvent, id: string) => {
+        e.preventDefault();
+        const boxIndex = boxes.findIndex((b) => b.id === id);
+        if (boxIndex === -1) return;
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startBox = boxes[boxIndex];
+
+        const handleMouseMove = (moveEvent: MouseEvent) => {
+            const dx = moveEvent.clientX - startX;
+            const dy = moveEvent.clientY - startY;
+
+            // Update the box position
+            addDataToBoxes(boxIndex, startBox, dx, dy);
+        };
+
+        const handleMouseUp = () => {
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
+        };
+
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
+    };
+
+    const handleAddBox = (e: React.MouseEvent) => {
+        if (!pageRef.current) return;
+
+        if (boxes.find((b) => b.label === selectedLabel)) {
+            console.log(`Box for "${selectedLabel}" already exists on this page.`);
+            return;
+        }
+
+        const rect = pageRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const newBox: DraggableBox = {
+            id: Date.now().toString(),
+            label: selectedLabel,
+            x,
+            y
+        };
+
+        onAddBox(pageNumber, newBox); // tell parent to update state
+    };
+
+
+
 
     return (
         <Box className="mt-4 w-full">
