@@ -3,7 +3,7 @@ import { useAuthStore } from "../store/authStore";
  
 // Create an Axios instance
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "NO-URL",
+    baseURL: import.meta.env.VITE_API_URL || "NO-URL"+'/api',
 });
 
 // Request interceptor
