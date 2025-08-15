@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import AppRoutes from "./routes";
-import "./app.css";
+import "./App.css";
 import { ThemeProvider } from "@emotion/react";
 import theme from "./themes";
 
